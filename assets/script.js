@@ -1,13 +1,22 @@
-// assets/script.js – Offline + Daily Refresh
+// assets/script.js – Offline + Daily Refresh (Fixed for GitHub Pages)
+// Developed by Arshdeep Singh - DairyCare Pro
 
-// Register Service Worker
+// 1. Register Service Worker with Dynamic Path
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => console.log('SW registered:', reg))
-    .catch(err => console.error('SW failed:', err));
+  window.addEventListener('load', () => {
+    // ਚੈੱਕ ਕਰੋ ਕਿ ਸਾਈਟ GitHub 'ਤੇ ਚੱਲ ਰਹੀ ਹੈ ਜਾਂ ਲੋਕਲ ਕੰਪਿਊਟਰ 'ਤੇ
+    const isGitHub = window.location.hostname.includes("github.io");
+    const repoName = window.location.pathname.split('/')[1];
+    // ਜੇਕਰ GitHub ਹੈ ਤਾਂ ਰੈਪੋਜ਼ਿਟਰੀ ਦਾ ਪਾਥ ਜੋੜੋ, ਨਹੀਂ ਤਾਂ ਸਿੱਧਾ ਰੂਟ ਚੁੱਕੋ
+    const swPath = isGitHub ? `/${repoName}/sw.js` : "/sw.js";
+
+    navigator.serviceWorker.register(swPath)
+      .then(reg => console.log('SW registered successfully:', reg))
+      .catch(err => console.error('SW registration failed:', err));
+  });
 }
 
-// Daily version check (once per day)
+// 2. Daily version check (once per day)
 function checkForUpdates() {
   const lastCheck = localStorage.getItem('sw_update_check');
   const today = new Date().toISOString().slice(0, 10);
@@ -38,7 +47,7 @@ navigator.serviceWorker.addEventListener('message', event => {
 checkForUpdates();
 window.addEventListener('online', () => checkForUpdates());
 
-// Manual update check (without controller check)
+// Manual update check
 async function checkForManualUpdate() {
   try {
     const registration = await navigator.serviceWorker.ready;
@@ -68,23 +77,22 @@ document.addEventListener('click', async (event) => {
 // This MUST match the CACHE_NAME in sw.js
 const APP_VERSION = 'dairycare-v4.5';  // Update manually when you change CACHE_NAME
 
-document.addEventListener('DOMContentLoaded', function () {
-  const versionSpan = document.getElementById('appVersion');
-  if (versionSpan) {
-    versionSpan.innerText = APP_VERSION.replace('dairycare-', 'v');
-  }
-});
-
-// Version display with retry (waits for header to load)
+// Version display with Safe Retry Limit (Prevents Infinite Loop)
+let versionRetryCount = 0;
 function setVersionNumber() {
   const versionSpan = document.getElementById('appVersion');
   if (versionSpan) {
     versionSpan.innerText = APP_VERSION.replace('dairycare-', 'v');
     console.log('Version set to:', versionSpan.innerText);
   } else {
-    // Header not loaded yet, retry after 200ms
-    console.log('Waiting for header to load...');
-    setTimeout(setVersionNumber, 200);
+    // ਜੇ ਹੈਡਰ ਅਜੇ ਲੋਡ ਨਹੀਂ ਹੋਇਆ, ਤਾਂ ਸਿਰਫ਼ 30 ਵਾਰ (6 ਸੈਕਿੰਡ) ਚੈੱਕ ਕਰੋ, ਉਸ ਤੋਂ ਬਾਅਦ ਲੂਪ ਬੰਦ ਕਰ ਦਿਓ
+    if (versionRetryCount < 30) {
+      versionRetryCount++;
+      console.log('Waiting for header to load... Retry: ' + versionRetryCount);
+      setTimeout(setVersionNumber, 200);
+    } else {
+      console.log('Header load timeout. Version display bypassed.');
+    }
   }
 }
 
