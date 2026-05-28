@@ -1,11 +1,11 @@
-// assets/dashboard.js - Fixed Absolute Paths & Clean Links for GitHub Pages
+// assets/dashboard.js - Fully Optimized for GitHub Pages
 // Developed by Arshdeep Singh - DairyCare Pro
 
 async function loadComponent(elementId, fileName) {
     const placeholder = document.getElementById(elementId);
     if (!placeholder) return;
 
-    // ਚੈੱਕ ਕਰੋ ਕਿ ਸਾਈਟ GitHub 'ਤੇ ਚੱਲ ਰਹੀ ਹੈ ਜਾਂ ਲੋਕਲ ਕੰਪਿਊਟਰ 'ਤੇ
+    // 1. ਡਾਇਨਾਮਿਕਲੀ ਰੈਪੋਜ਼ਿਟਰੀ ਦਾ ਸਹੀ ਨਾਮ (Case-Sensitive) URL ਵਿੱਚੋਂ ਚੁੱਕੋ
     const isGitHub = window.location.hostname.includes("github.io");
     const repoName = window.location.pathname.split('/')[1];
     const basePath = isGitHub ? `/${repoName}/` : "/";
@@ -16,36 +16,46 @@ async function loadComponent(elementId, fileName) {
         const data = await response.text();
         placeholder.innerHTML = data;
         
-        // ਜਦੋਂ ਹੈਡਰ ਲੋਡ ਹੋ ਜਾਵੇ, ਤਾਂ ਲਿੰਕਾਂ ਨੂੰ ਆਟੋਮੈਟਿਕ ਸਾਫ਼ ਕਰੋ
+        // ਜਦੋਂ ਹੈਡਰ ਲੋਡ ਹੋ ਜਾਵੇ, ਤਾਂ ਲਿੰਕਾਂ ਨੂੰ ਸਹੀ ਕਰੋ
         if (elementId === "header-placeholder") {
             highlightActiveNav();
-            cleanHeaderLinks(basePath); // 👈 ਇੱਥੇ ਲਿੰਕ ਸਾਫ਼ ਕਰਨ ਵਾਲਾ ਜੁਗਾੜ ਚੱਲੇਗਾ
+            fixAndCleanLinks(basePath); // 👈 ਸੁਧਾਰਿਆ ਹੋਇਆ ਸੁਰੱਖਿਅਤ ਫੰਕਸ਼ਨ
         }
     } catch (error) {
         console.error("Error loading component:", error);
     }
 }
 
-// ਹੈਡਰ ਦੇ ਲਿੰਕਾਂ ਵਿੱਚੋਂ index.html ਅਤੇ ਵੱਡੇ C ਦੀ ਗਲਤੀ ਹਟਾਉਣ ਵਾਲਾ ਫੰਕਸ਼ਨ
-function cleanHeaderLinks(basePath) {
+// ਹੈਡਰ ਦੇ ਲਿੰਕਾਂ ਨੂੰ ਬਿਨਾਂ ਬ੍ਰੋਕਨ ਕੀਤੇ ਸਾਫ਼ ਕਰਨ ਦਾ ਸਹੀ ਤਰੀਕਾ
+function fixAndCleanLinks(basePath) {
+    const isGitHub = window.location.hostname.includes("github.io");
     const logoLink = document.querySelector(".logo");
     const navLinks = document.querySelectorAll(".nav-link, .nav-menu a");
 
-    // 1. ਮੇਨ ਲੋਗੋ/ਬਟਨ ਦੇ ਲਿੰਕ ਵਿੱਚੋਂ index.html ਹਟਾਓ ਅਤੇ ਪਾਥ ਸਹੀ ਕਰੋ
+    // 1. ਮੇਨ ਲੋਗੋ ਬਟਨ ਨੂੰ ਸਿੱਧਾ ਹੋਮ ਪੇਜ ਦੀ ਰੂਟ ਡਾਇਰੈਕਟਰੀ ਨਾਲ ਲਿੰਕ ਕਰੋ (No index.html)
     if (logoLink) {
-        logoLink.setAttribute("href", basePath); // ਇਹ ਸਿੱਧਾ '/Dairycare_Pro/' 'ਤੇ ਲੈ ਕੇ ਜਾਵੇਗਾ
+        logoLink.setAttribute("href", basePath);
     }
 
-    // 2. ਬਾਕੀ ਸਾਰੇ ਲਿੰਕਾਂ ਨੂੰ ਵੀ ਚੈੱਕ ਕਰਕੇ ਸਹੀ ਕਰੋ
-    navLinks.forEach(link => {
-        let href = link.getAttribute("href");
-        if (href) {
-            // ਜੇਕਰ ਕਿਸੇ ਲਿੰਕ ਵਿੱਚ index.html ਲਿਖਿਆ ਹੈ, ਤਾਂ ਉਸਨੂੰ ਸਿੱਧਾ ਮੇਨ ਪਾਥ ਬਣਾ ਦਿਓ
-            if (href.includes("index.html")) {
+    // 2. ਬਾਕੀ ਸਾਰੇ ਨੇਵੀਗੇਸ਼ਨ ਲਿੰਕਾਂ ਨੂੰ GitHub Pages ਦੇ ਸਬ-ਫੋਲਡਰ ਮੁਤਾਬਕ ਸੈੱਟ ਕਰੋ
+    if (isGitHub) {
+        navLinks.forEach(link => {
+            let href = link.getAttribute("href");
+            
+            // ਜੇਕਰ ਹੋਮ ਬਟਨ ਦਾ ਲਿੰਕ 'index.html' ਹੈ, ਤਾਂ ਉਸਨੂੰ ਵੀ ਮੇਨ ਰੂਟ ਬਣਾ ਦਿਓ
+            if (href === "index.html" || href === "/index.html") {
                 link.setAttribute("href", basePath);
+                return;
             }
-        }
-    });
+
+            // ਜੇਕਰ ਲਿੰਕ ਪਹਿਲਾਂ ਹੀ ਪੂਰਾ URL (http) ਨਹੀਂ ਹੈ ਅਤੇ ਰੈਪੋ ਨਾਮ ਨਾਲ ਸ਼ੁਰੂ ਨਹੀਂ ਹੁੰਦਾ
+            if (href && !href.startsWith("http") && !href.startsWith("#") && !href.startsWith(basePath)) {
+                // ਪਾਥ ਦੇ ਅੱਗੇ ਲੱਗੇ ਡੌਟਸ (../) ਸਾਫ਼ ਕਰੋ ਕਿਉਂਕਿ ਆਪਾਂ Absolute Path ਵਰਤ ਰਹੇ ਹਾਂ
+                const cleanHref = href.replace(/^(\.\.\/|\.\/|\/)/, "");
+                link.setAttribute("href", basePath + cleanHref);
+            }
+        });
+    }
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
