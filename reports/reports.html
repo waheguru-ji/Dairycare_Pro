@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pa">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>ਰਿਪੋਰਟਾਂ - DairyCare Pro</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="reports.css">
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="container">
+        <h1 class="page-title">📊 ਰਿਪੋਰਟਾਂ</h1>
+        <p class="subtitle">ਆਪਣੇ ਡੇਅਰੀ ਕਾਰੋਬਾਰ ਦਾ ਪੂਰਾ ਵਿਸ਼ਲੇਸ਼ਣ ਦੇਖੋ</p>
+
+        <div class="summary-cards">
+            <div class="card summary-item">
+                <div class="summary-icon">🥛</div>
+                <div class="summary-label">ਅੱਜ ਦਾ ਦੁੱਧ</div>
+                <div class="summary-value" id="todayMilk">0.0 L</div>
+            </div>
+            <div class="card summary-item">
+                <div class="summary-icon">💰</div>
+                <div class="summary-label">ਅੱਜ ਦੀ ਕਮਾਈ</div>
+                <div class="summary-value" id="todayIncome">₹0</div>
+            </div>
+        </div>
+
+        <div class="card filters-card">
+            <h2>🔍 ਫਿਲਟਰ</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label>📅 ਤਾਰੀਖ਼ ਰੇਂਜ</label>
+                    <div class="date-range">
+                        <input type="date" id="startDate" class="form-control">
+                        <span>ਤੋਂ</span>
+                        <input type="date" id="endDate" class="form-control">
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>🐄 ਪਸ਼ੂ ਕਿਸਮ</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="filterBuffalo" checked> ਮੱਝ</label>
+                        <label><input type="checkbox" id="filterCow" checked> ਗਾਂ</label>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-actions">
+                        <button id="applyFiltersBtn" class="btn btn-primary">ਫਿਲਟਰ ਲਾਗੂ</button>
+                        <button id="resetFiltersBtn" class="btn btn-secondary">ਰੀਸੈੱਟ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="charts-section">
+            <div class="card chart-card">
+                <h2>📈 ਰੋਜ਼ਾਨਾ ਦੁੱਧ (ਲੀਟਰ)</h2>
+                <canvas id="dailyMilkChart" width="400" height="200"></canvas>
+            </div>
+            <div class="card chart-card">
+                <h2>🐄 ਮੱਝ ਬਨਾਮ ਗਾਂ (ਦੁੱਧ)</h2>
+                <canvas id="animalCompareChart" width="400" height="200"></canvas>
+            </div>
+            <div class="card chart-card">
+                <h2>📆 ਮਹੀਨੇਵਾਰ ਰੁਝਾਨ</h2>
+                <canvas id="monthlyTrendChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="card entries-card">
+            <h2>
+                📋 ਐਂਟਰੀਆਂ ਦੀ ਸੂਚੀ
+                <button id="toggleEntriesBtn" class="btn btn-sm">🔽 ਦਿਖਾਓ</button>
+            </h2>
+            <div class="table-responsive">
+                <table id="entriesTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>ਤਾਰੀਖ਼</th>
+                            <th>ਕਿਸਮ</th>
+                            <th>ਦੁੱਧ (L)</th>
+                            <th>ਰੇਟ (₹)</th>
+                            <th>ਕੁੱਲ (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="entriesBody">
+                        <tr>
+                            <td colspan="5" class="text-center">ਕੋਈ ਐਂਟਰੀ ਨਹੀਂ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card detailed-reports">
+            <h2>📋 ਵਿਸਤ੍ਰਿਤ ਰਿਪੋਰਟਾਂ</h2>
+            <div class="reports-grid">
+                <div class="report-box" id="farmerReport">
+                    <h3>👤 ਕਿਸਾਨ ਰਿਪੋਰਟ</h3>
+                    <div class="report-content">
+                        <p><strong>ਕੁੱਲ ਦੁੱਧ:</strong> <span id="farmerTotalMilk">0 L</span></p>
+                        <p><strong>ਕੁੱਲ ਕਮਾਈ:</strong> <span id="farmerTotalIncome">₹0</span></p>
+                    </div>
+                </div>
+                <div class="report-box" id="monthlyReport">
+                    <h3>📅 ਮਹੀਨੇਵਾਰ ਰਿਪੋਰਟ</h3>
+                    <select id="monthSelector" class="form-control">
+                    </select>
+                    </select>
+                    <div class="report-content" id="monthlyReportContent">
+                        <p><strong>ਦੁੱਧ:</strong> <span id="monthlyMilk">0 L</span></p>
+                        <p><strong>ਕਮਾਈ:</strong> <span id="monthlyIncome">₹0</span></p>
+                    </div>
+                </div>
+                <div class="report-box" id="yearlyReport">
+                    <h3>📆 ਸਾਲਾਨਾ ਰਿਪੋਰਟ</h3>
+                    <select id="yearSelector" class="form-control">
+                        <option value="2026">2026</option>
+                    </select>
+                    <div class="report-content">
+                        <p><strong>ਦੁੱਧ:</strong> <span id="yearlyMilk">0 L</span></p>
+                        <p><strong>ਕਮਾਈ:</strong> <span id="yearlyIncome">₹0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card analytics-card">
+            <h2>🧮 ਹਿਸਾਬ ਅਤੇ ਵਿਸ਼ਲੇਸ਼ਣ</h2>
+            <div class="analytics-grid">
+                <div class="analytics-item">
+                    <span class="analytics-label">ਔਸਤ ਦੁੱਧ ਪ੍ਰਤੀ ਦਿਨ</span>
+                    <span class="analytics-value" id="avgMilkPerDay">0 L</span>
+                </div>
+                <div class="analytics-item">
+                    <span class="analytics-label">ਔਸਤ ਫੈਟ %</span>
+                    <span class="analytics-value" id="avgFatPercent">0%</span>
+                </div>
+                <div class="analytics-item">
+                    <span class="analytics-label">ਸਭ ਤੋਂ ਵੱਧ ਦੁੱਧ ਵਾਲਾ ਦਿਨ</span>
+                    <span class="analytics-value" id="maxMilkDay">-</span>
+                </div>
+                <div class="analytics-item">
+                    <span class="analytics-label">ਸਭ ਤੋਂ ਘੱਟ ਦੁੱਧ ਵਾਲਾ ਦਿਨ</span>
+                    <span class="analytics-value" id="minMilkDay">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons" style="margin-top: 20px;">
+            <label style="display: inline-flex; align-items: center; gap: 8px; margin-right: 20px;">
+                <input type="checkbox" id="includeEntriesList" checked> 📋 ਐਂਟਰੀਆਂ ਦੀ ਸੂਚੀ PDF ਵਿੱਚ ਦਿਖਾਓ
+            </label>
+            <button id="generateReportsPdfBtn" class="btn btn-primary">📊 ਗ੍ਰਾਫ਼ PDF ਡਾਊਨਲੋਡ ਕਰੋ</button>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="../assets/script.js"></script>
+    <script src="../assets/dashboard.js"></script>
+    <script src="reports.js"></script>
+    <script src="reportspdf.js"></script>
+</body>
+
+</html>
