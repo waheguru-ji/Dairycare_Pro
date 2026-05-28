@@ -72,24 +72,46 @@
 
     <div id="footer-placeholder"></div>
 
+    <!-- dashboard.js removed to avoid conflict with inline script -->
     <script src="assets/script.js"></script>
-    <script src="assets/dashboard.js"></script>
     <script>
+        // 1. Base path detection (works on GitHub Pages and localhost)
+        function getAppBasePath() {
+            const isGitHub = window.location.hostname.includes("github.io");
+            if (isGitHub) {
+                const repoName = window.location.pathname.split('/')[1];
+                return `/${repoName}/`;
+            }
+            return "/";
+        }
+
+        // 2. Navigation functions – CRITICAL: legal folder added
+        window.navigateLegal = function(pageName) {
+            window.location.href = getAppBasePath() + 'legal/' + pageName;
+        };
+        window.navigateRoot = function(pageName) {
+            window.location.href = getAppBasePath() + pageName;
+        };
+
+        // 3. Load header, footer and marquee components dynamically
         async function loadComponents() {
+            const basePath = getAppBasePath();
             const components = [
-                { id: 'marquee-placeholder', url: 'components/marquee.html' },
-                { id: 'header-placeholder', url: 'components/header.html' },
-                { id: 'footer-placeholder', url: 'components/footer.html' }
+                { id: 'marquee-placeholder', url: `${basePath}components/marquee.html` },
+                { id: 'header-placeholder', url: `${basePath}components/header.html` },
+                { id: 'footer-placeholder', url: `${basePath}components/footer.html` }
             ];
             for (let comp of components) {
                 try {
                     const response = await fetch(comp.url);
                     if (response.ok) {
-                        const html = await response.text();
-                        document.getElementById(comp.id).innerHTML = html;
-                    } else throw new Error('Failed to load ' + comp.url);
+                        document.getElementById(comp.id).innerHTML = await response.text();
+                    } else {
+                        throw new Error('Failed to load ' + comp.url);
+                    }
                 } catch (error) {
                     console.warn(error);
+                    // Fallback content if component missing
                     if (comp.id === 'header-placeholder') {
                         document.getElementById(comp.id).innerHTML = `
                             <header style="background:#2d6a4f; color:white; padding:1rem;">
@@ -113,11 +135,13 @@
             }
         }
 
+        // 4. Remove loading spinner after components are loaded
         window.onload = async function () {
             await loadComponents();
             document.body.classList.remove('loading');
         };
 
+        // 5. Email copy function
         function copyEmail() {
             const email = 'kjaspal483@gmail.com';
             navigator.clipboard.writeText(email).then(() => {
@@ -127,12 +151,10 @@
             });
         }
 
-        // Modal close function for close button
+        // 6. Close modal functions
         function closeModal() {
             document.getElementById('contactModal').style.display = 'none';
         }
-
-        // Click outside modal to close it
         window.onclick = function (event) {
             const modal = document.getElementById('contactModal');
             if (event.target === modal) {
