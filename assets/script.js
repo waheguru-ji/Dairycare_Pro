@@ -70,7 +70,7 @@ document.addEventListener('click', async (event) => {
 });
 
 // ਨਵਾਂ ਕੋਡ (ਸਿਰਫ਼ 1 ਹੀ v ਦਿਖਾਉਣ ਲਈ)
-const APP_VERSION = 'v4.5';
+const APP_VERSION = 'v4.7';
 
 document.addEventListener('DOMContentLoaded', function () {
   setVersionNumber();
