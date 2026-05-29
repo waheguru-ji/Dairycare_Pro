@@ -138,22 +138,13 @@
                             }
                         }
                     }
-                } else if (comp.id === 'footer-placeholder') {
+                    else if (comp.id === 'footer-placeholder') {
                     document.getElementById(comp.id).innerHTML = `
                             <footer style="background:#1e293b; color:#cbd5e1; text-align:center; padding:1rem;">
                                 Developed by Arshdeep Singh © 2026
                             </footer>
                         `;
-                } else if (comp.id === 'marquee-placeholder') {
-                    document.getElementById(comp.id).innerHTML = `
-                            <div class="ticker-wrap" style="text-align:center; padding:0.5rem 0; font-weight:bold;">
-                                🐄 DairyCare Pro: ਆਪਣੇ ਦੁੱਧ ਦਾ ਹਿਸਾਬ ਰੱਖੋ ਸੌਖੇ ਤਰੀਕੇ ਨਾਲ
-                            </div>
-                        `;
-                }
-            }
-        }
-
+                } 
 
         // 4. Remove loading spinner after components are loaded
         window.onload = async function () {
